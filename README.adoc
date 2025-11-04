@@ -1,0 +1,41 @@
+= nice-nixpkgs-haskell
+
+== Preface
+
+This is a work in progress and the interface will change.
+You should not use this for real projects right now.
+
+== About
+
+Flake providing a nix library for creating haskell projects using nixpkgs infrastructure.
+It does this by wrapping the existing infrastructure into a coherent interface.
+The goal is to make setting up Haskell projects feel nice.
+
+Largely based on the `hnix` Nix build file.
+https://github.com/haskell-nix/hnix/blob/3f334d9b5a8b1044df850167b1b459e5649868f3/default.nix
+
+== Usage
+
+Add `niceHaskell` to your flake inputs
+```nix
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    niceHaskell = {
+      url = "github:saygo-png/nice-nixpkgs-haskell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+```
+(You could also override the `systems` and `treefmt-nix` inputs.)
+
+Then we just get the library from the input and bind it to `niceHaskell` and use it to create our package.
+
+```nix
+    packages = eachSystem (system: let
+      niceHaskell = inputs.niceHaskell.outputs.niceHaskell.${system};
+    in {
+      examplePackage = niceHaskell.mkPackage {
+        flags = niceHaskell.mkFlags {doCheck = true;};
+        packageRoot = ./.;
+        cabalName = "examplePackage";
+      };
+    });
+```
