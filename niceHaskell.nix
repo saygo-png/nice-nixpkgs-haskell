@@ -155,7 +155,7 @@
         (mkSwitch flags.linkWithGold hlib.linkWithGold)
         (mkSwitch flags.enableDWARFDebugging hlib.enableDWARFDebugging)
         (mkSwitch flags.doStrip hlib.doStrip)
-        (mkSwitch flags.doJailbreak hlib.doJailBreak)
+        (mkSwitch flags.doJailbreak hlib.doJailbreak)
         (mkSwitch flags.disableOptimization hlib.disableOptimization)
         (mkSwitch flags.buildFromSdist hlib.buildFromSdist)
         (mkSwitch flags.sdistTarball hlib.sdistTarball)
