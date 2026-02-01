@@ -9,8 +9,8 @@
     returnShellEnv ? false,
     #
     # Generate and apply completions from the optparse-applicative library. Done with a postInstall hook.
-    generateOptparseApplicativeCompletions ? false,
-    executableNamesToShellComplete ? [], # The executable names to generate completions for.
+    # Needs executable names of the programs you want completed. If you do not wish to use completions leave this list empty.
+    executableNamesToShellComplete ? [],
     #
     # Escape the version bounds from the cabal file. You may want to avoid this function.
     doJailbreak ? false,
@@ -116,7 +116,6 @@
       doHyperlinkSource
       doCoverage
       doBenchmark
-      generateOptparseApplicativeCompletions
       executableNamesToShellComplete
       withHoogle
       ;
@@ -148,7 +147,7 @@
     in
       lib.reverseList [
         (mkSwitch flags.doHyperlinkSource hlib.doHyperlinkSource)
-        (mkSwitch flags.generateOptparseApplicativeCompletions makeCompletions)
+        (mkSwitch (flags.executableNamesToShellComplete != []) makeCompletions)
         (mkSwitch flags.checkUnusedPackages (hlib.checkUnusedPackages {}))
         (mkSwitch flags.justStaticExecutables hlib.justStaticExecutables)
         (mkSwitch flags.failOnAllWarnings hlib.failOnAllWarnings)
@@ -166,8 +165,7 @@
       then set.function object
       else object;
 
-    package =
-      hpkgs.developPackage ({
+    package = hpkgs.developPackage ({
         name = cabalName;
         root = pkgs.nix-gitignore.gitignoreSource [] packageRoot;
 
