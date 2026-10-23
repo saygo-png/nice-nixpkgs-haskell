@@ -125,8 +125,10 @@
     flags,
     cabalName,
     #
-    # For current default and explicitly supported GHCs https://search.nixos.org/packages?query=ghc&from=0&size=500&channel=unstable, Nixpkgs implicitly supports older minor versions also, until the configuration departs from compatibility with them.
-    compiler ? "ghc984",
+    # Attribute name of a package set in `pkgs.haskell.packages`, e.g. "ghc984".
+    # Defaults to `null`, which uses `pkgs.haskellPackages`, the package set of nixpkgs' default GHC.
+    # Only the default package set is fully built by Hydra and therefore available from cache.nixos.org,
+    compiler ? null,
     #
     packageRoot,
     enableNiceAbstractions ? true,
@@ -135,7 +137,10 @@
   }: let
     hlib = pkgs.haskell.lib;
 
-    hpkgs = pkgs.haskell.packages.${compiler};
+    hpkgs =
+      if compiler == null
+      then pkgs.haskellPackages
+      else pkgs.haskell.packages.${compiler};
     makeCompletions = hpkgs.generateOptparseApplicativeCompletions flags.executableNamesToShellComplete;
 
     # Application of functions from this list to the package in code here happens from top to bottom.
