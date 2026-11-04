@@ -130,6 +130,11 @@
     # Only the default package set is fully built by Hydra and therefore available from cache.nixos.org,
     compiler ? null,
     #
+    # A whole Haskell package set to build with instead of one from `pkgs`, e.g. `haskellPackages`
+    # from another nixpkgs. Use it when the result has to match packages built from that set.
+    # Takes precedence over `compiler`.
+    haskellPackages ? null,
+    #
     packageRoot,
     enableNiceAbstractions ? true,
     developPackageArgs ? {},
@@ -138,9 +143,12 @@
     hlib = pkgs.haskell.lib;
 
     hpkgs =
-      if compiler == null
+      if haskellPackages != null
+      then haskellPackages
+      else if compiler == null
       then pkgs.haskellPackages
       else pkgs.haskell.packages.${compiler};
+
     makeCompletions = hpkgs.generateOptparseApplicativeCompletions flags.executableNamesToShellComplete;
 
     # Application of functions from this list to the package in code here happens from top to bottom.
