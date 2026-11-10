@@ -19,7 +19,7 @@
     ...
   }: let
     eachSystem = f: nixpkgs.lib.genAttrs (import systems) f;
-    eachSystemPkgs = f: eachSystem (system: f (import nixpkgs {inherit system;}));
+    eachSystemPkgs = f: eachSystem (system: f nixpkgs.legacyPackages.${system});
     treefmtEval = eachSystemPkgs (pkgs: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
   in {
     formatter = eachSystem (system: treefmtEval.${system}.config.build.wrapper);

@@ -27,15 +27,49 @@ Add `niceHaskell` to your flake inputs
 (You could also override the `systems` and `treefmt-nix` inputs.)
 
 Then we just get the library from the input and bind it to `niceHaskell` and use it to create our package.
+Flags like `doCheck` are arguments too, see `niceHaskell.nix` for all of them and their defaults.
 
 ```nix
     packages = eachSystem (system: let
       niceHaskell = inputs.niceHaskell.outputs.niceHaskell.${system};
-    in {
+    in rec {
       examplePackage = niceHaskell.mkPackage {
-        flags = niceHaskell.mkFlags {doCheck = true;};
-        packageRoot = ./.;
-        cabalName = "examplePackage";
+        src = ./.;
+        doCheck = true;
+        # Passed to haskellPackages.developPackage. modifier runs after the flags.
+        developPackageArgs.overrides = _: _: {inherit otherPackage;};
       };
     });
 ```
+
+The result is an ordinary Haskell derivation, so its `env` is a shell with GHC and every dependency:
+
+```nix
+    devShells = eachSystem (system: {
+      default = pkgs.mkShell {
+        inputsFrom = [self.packages.${system}.examplePackage.env];
+        packages = [pkgs.cabal-install pkgs.haskell-language-server];
+      };
+    });
+```
+
+== Without import from derivation
+
+`mkPackage` runs cabal2nix while Nix evaluates, so evaluation stops until cabal2nix is built and run.
+To avoid that, commit cabal2nix's output next to the .cabal file:
+
+```sh
+nix run nixpkgs#cabal2nix -- . > cabal.nix
+```
+
+and use `mkPackageNoIFD` with the same arguments, plus the file:
+
+```nix
+      examplePackage = niceHaskell.mkPackageNoIFD {
+        src = ./.;
+        cabal2nix = ./cabal.nix;
+        doCheck = true;
+      };
+```
+
+Regenerate the file whenever dependencies or flags in the .cabal file change.
